@@ -5,37 +5,46 @@ using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using System.Text.RegularExpressions;
+
+using ProvWebApi.Dtos;
 
 namespace ProvWebApi
 {
     public static class Services
     {
-        public static string ImageToString(byte[] picture)
+        public static string ConvertFromByteArrayToString(byte[] image)
         {
-            return picture != null ? Encoding.ASCII.GetString(picture) : null;
+            return image != null ? Encoding.ASCII.GetString(image) : null;
         }
 
-        public static string ReadAsList(this IFormFile file)
+        public static byte[] ConvertImageToBytes(string iamge)
         {
-            var result = new StringBuilder();
-            using (var reader = new StreamReader(file.OpenReadStream()))
-            {
-                while (reader.Peek() >= 0)
-                    result.AppendLine(reader.ReadLine());
-            }
-            return Convert.ToString(result) ;
+            return iamge != null ? Encoding.ASCII.GetBytes(iamge) : null;
         }
 
-        public static async Task<string> ReadFormFileAsync(IFormFile file)
+        public static JsonFileObject DeserializeJsonFileToObject(IFormFile file)
         {
-            if (file == null || file.Length == 0)
+            if(file == null)
             {
-                return await Task.FromResult((string)null);
+                return null;
             }
-
+            string fileContent = null;
             using (var reader = new StreamReader(file.OpenReadStream()))
             {
-                return await reader.ReadToEndAsync();
+                fileContent = reader.ReadToEnd();
+            }
+            var cleanContent = Regex.Unescape(fileContent);
+            try
+            {
+                var result = JsonConvert.DeserializeObject<JsonFileObject>(cleanContent);
+                return result; //new ApiResponse<IEnumerable<ItemDto>> { IsSuccessful = true, Data = result.Items };
+            }
+            catch (Exception e)
+            {
+                return null; //new ApiResponse<IEnumerable<ItemDto>> { IsSuccessful = false, Message = "Something wentr wrong, please check that you are sending data in json format." };
+
             }
         }
     }

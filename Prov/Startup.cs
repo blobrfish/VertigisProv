@@ -22,16 +22,16 @@ namespace Prov
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddCors(options =>
-            {
-                options.AddPolicy("ClientPermission", policy =>
-                {
-                    policy.AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .WithOrigins("https://localhost:44316/", "https://provwebapi20230829054949.azurewebsites.net")
-                        .AllowCredentials();
-                });
-            });
+            //services.AddCors(options =>
+            //{
+            //    options.AddPolicy("ClientPermission", policy =>
+            //    {
+            //        policy.AllowAnyHeader()
+            //            .AllowAnyMethod()
+            //            .WithOrigins("https://localhost:44316/", "https://provwebapi20230829054949.azurewebsites.net")
+            //            .AllowCredentials();
+            //    });
+            //});
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -43,7 +43,7 @@ namespace Prov
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseCors("ClientPermission");
+            //app.UseCors("ClientPermission");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

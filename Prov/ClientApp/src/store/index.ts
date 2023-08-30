@@ -13,8 +13,7 @@ export interface ApplicationState {
 // acts on the corresponding ApplicationState property type.
 export const reducers = {
     items: itemsSlice
-    //counter: Counter.reducer,
-    //weatherForecasts: WeatherForecasts.reducer
+
 };
 
 // This type can be used as a hint on action creators so that its 'dispatch' and 'getState' params are

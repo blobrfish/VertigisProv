@@ -9,171 +9,79 @@ using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
+using ProvWebApi.Dtos;
 using System.Text.RegularExpressions;
 
 namespace ProvWebApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ItemsController : ControllerBase
+    public partial class ItemsController : ControllerBase
     {
    
         [HttpGet]
-        public IEnumerable<Item> Get()
+        public IEnumerable<ItemDto> Get()
         {
             var repository = new ItemsRepository();
             return repository.Get();
         }
 
         [HttpPost]
-        public async Task<ApiResponse> AddItems([FromBody] IEnumerable<Item1> items)
+        public async Task<ApiResponse> AddItems([FromBody] IEnumerable<ItemDto> items)
         {
+            //inject rep in the constructorn
             var repository = new ItemsRepository();
-
             repository.Add(items);
             return new ApiResponse { IsSuccessful = true };
         }
 
-        public class ApiResponse
-        {
-            public string Message { get; set; }
-            public bool IsSuccessful { get; set; }
-        }
-
-        public class ApiResponse<T> : ApiResponse
-        {
-            public T Data  {get;set;}
-        }
-
-
-     
+       
         [HttpPost("JsonFile/Parse")]
-        public async Task<ApiResponse<IEnumerable<Item1>>> ParseItems([FromForm] IFormFile file)
+        public async Task<ApiResponse<IEnumerable<ItemDto>>> ParseItems([FromForm] IFormFile file)
         {
-            string fileContent = null;
-            using (var reader = new StreamReader(file.OpenReadStream()))
+
+            var result = Services.DeserializeJsonFileToObject(file);
+            if (result == null)
             {
-                fileContent = reader.ReadToEnd();
+                return new ApiResponse<IEnumerable<ItemDto>> { IsSuccessful = false, Message = "Something wentr wrong, please check that you are sending data in json format." };
             }
-            var cleanContent =  Regex.Unescape(fileContent);
-            try
-            {
-                var result = JsonConvert.DeserializeObject<DataItems>(cleanContent);
-                return new ApiResponse<IEnumerable<Item1>> { IsSuccessful = true, Data = result.Items };
-            }
-            catch (Exception e)
-            {
-                return new ApiResponse<IEnumerable<Item1>> { IsSuccessful = false, Message = "Something wentr wrong, please check that you are sending data in json format." };
+            return new ApiResponse<IEnumerable<ItemDto>> { IsSuccessful = true, Data = result.Items };
 
-            }
-        }
-
-
-        public async Task<ApiResponse<IEnumerable<Item1>>> ConvertFromBase64ToString([FromForm] IFormFile file)
-        {
-            string fileContent = null;
-            using (var reader = new StreamReader(file.OpenReadStream()))
-            {
-                fileContent = reader.ReadToEnd();
-            }
-            var cleanContent = Regex.Unescape(fileContent);
-            try
-            {
-                var result = JsonConvert.DeserializeObject<DataItems>(cleanContent);
-                RemovePrefixFromBase64Strings(result.Items);
-                return new ApiResponse<IEnumerable<Item1>> { IsSuccessful = true, Data = result.Items };
-            }
-            catch (Exception e)
-            {
-                return new ApiResponse<IEnumerable<Item1>> { IsSuccessful = false, Message = "Something wentr wrong, please check that you are sending data in json format." };
-
-            }
-        }
-
-        //byte[] data = Convert.FromBase64String(encodedString);
-        //string decodedString = System.Text.Encoding.UTF8.GetString(data);
-
-
-        public static void DecodeBase64ImagesToString(IEnumerable<Item1> items)
-        {
-            foreach(Item1 i in items)
-            {
-                i.Image = DecodeBase64StringToString(i.Image);
-            }
-        }
-
-
-        public static void RemovePrefixFromBase64Strings(IEnumerable<Item1> items)
-        {
-            foreach (Item1 i in items)
-            {
-                i.Image = RemovePrefixFromBase64String(i.Image);
-            }
-        }
-
-        public static string RemovePrefixFromBase64String(string encodedString)
-        {
-            Regex regex = new Regex(@"^[\w/\:.-]+;base64,");
-            var encodedStringWithoutPrefix = regex.Replace(encodedString, string.Empty);
-            return encodedStringWithoutPrefix;
-            //var data = Convert.FromBase64String(encodedStringWithoutPrefix);
-            //string decodedString = System.Text.Encoding.UTF8.GetString(data);
-            //return decodedString;
-        }
-
-        public static string DecodeBase64StringToString(string encodedString)
-        {
-            Regex regex = new Regex(@"^[\w/\:.-]+;base64,");
-            var encodedStringWithoutPrefix = regex.Replace(encodedString, string.Empty);
-            var data =  Convert.FromBase64String(encodedStringWithoutPrefix);
-            string decodedString = System.Text.Encoding.UTF8.GetString(data);
-            return decodedString;
-        }
-
-
-        public static string PictureToString(byte[] picture)
-        {
-            return picture != null ? System.Text.Encoding.ASCII.GetString(picture) : null;
-        }
-
-        //public static string PictureToString(byte[] picture)
-        //{
-        //    return picture != null ? System.Text.Encoding.ASCII.GetString(picture) : null;
-        //}
-
-
-
-
-        //public static void ConvertImagesToBytes(IEnumerable<Item1> items)
-        //{
-        //    foreach (Item1 i in items)
-        //    {
-        //        i.Image = ConvertImageToBytes(i.Image);
-        //    }
-        //}
-
-        public static byte[] ConvertImageToBytes(string picture)
-        {
-            return picture != null ? System.Text.Encoding.ASCII.GetBytes(picture) : null;
         }
 
 
 
-
-
-
-
-
-
-        // Testing
-
+        
+        
+        
+        
+        
+        /// <summary>
+        /// TESTING
+        /// </summary>
+        /// <returns></returns>
+        
+        
+        //Testing sql bulk insert 
         [HttpGet("AddItemsToDatabase")]
-        public async Task<ApiResponse<IEnumerable<Item1>>> AddItemsToDatabase()
+        public async Task<ApiResponse<IEnumerable<ItemDto>>> CheckIfItemsAreAddedToDatabase()
         {
             var repository = new ItemsRepository();
-            repository.Add(new List<Item1> { new Item1 { Name = "Name1", Age = 5, Hobby = "Do something", Image = "ddd" } });
-            return new ApiResponse<IEnumerable<Item1>> { IsSuccessful = true, Message= "yes it worked" };
-         
+            repository.Add(new List<ItemDto> { new ItemDto { Name = "John", Age = 5, Hobby = "Do something", Image = "ddd" }, new ItemDto { Name = "Lucy", Age = 5, Hobby = "Do something", Image = "ddd" } });
+            return new ApiResponse<IEnumerable<ItemDto>> { IsSuccessful = true, Message = "yes it worked" };
         }
+
+        //Testing if json was recieved 
+        [HttpPost("UploadFile")]
+        public ApiResponse  CheckIfFileIsRecieved([FromForm] IFormFile file)
+        {
+            if (file == null)
+            {
+                return new ApiResponse { IsSuccessful = false, Message = "No file was recieved." };
+            }
+            return new ApiResponse { IsSuccessful = true, Message = "The file was recieved!" };
+        }
+
+        
     }
 }

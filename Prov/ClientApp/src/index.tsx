@@ -3,9 +3,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { ConnectedRouter } from 'connected-react-router';
 import { createBrowserHistory } from 'history';
-
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 import configureStore from './store/configureStore';
@@ -21,13 +19,8 @@ export type AppDispatch = typeof store.dispatch;
 ReactDOM.render(
     <Provider store={store}>
         <BrowserRouter>
-        {/*<ConnectedRouter history={history}>*/}
             <App />
-
         </BrowserRouter>
-
-     {/*   </ConnectedRouter>*/}
     </Provider>,
     document.getElementById('root'));
-
 registerServiceWorker();
